@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using TODOList.API.Data;
 using TODOList.API.Models.Domain;
 using TODOList.API.Models.DTO;
@@ -21,10 +22,10 @@ namespace TODOList.API.Controllers
         // GET ALL TODOS
         // Get: https://localhost:7082/api/todos
         [HttpGet]
-        public IActionResult GetAll()
+        public async Task<IActionResult> GetAll()
         {   
             // Get Data From Database - Domain Models
-            var todosDomain = dbContext.Todos.ToList();
+            var todosDomain = await dbContext.Todos.ToListAsync();
 
             //Map Domain Model to Dto
             var todosDto = new List<TodoDto>();
@@ -47,10 +48,10 @@ namespace TODOList.API.Controllers
         // Get: https://localhost:7082/api/todos/{id}
         [HttpGet]
         [Route("id:Guid")]
-        public IActionResult GetById([FromRoute] Guid id)
+        public async Task<IActionResult> GetById([FromRoute] Guid id)
         {
             // Get Data From Database - Domain Models
-            var todoDomain = dbContext.Todos.Find(id);
+            var todoDomain = await dbContext.Todos.FirstOrDefaultAsync( todo => todo.Id == id);
 
             if (todoDomain is null)
             {
@@ -73,7 +74,7 @@ namespace TODOList.API.Controllers
         // POST To Create New TODO
         // POST: https://localhost:7082/api/todos/
         [HttpPost]
-        public IActionResult Create([FromBody] AddTodoRequestDto addTodoRequestDto)
+        public async Task<IActionResult> Create([FromBody] AddTodoRequestDto addTodoRequestDto)
         {
             // Mapo Dto to Domain Model
             var todoDomainModel = new Todo
@@ -84,8 +85,8 @@ namespace TODOList.API.Controllers
             };
 
             // Use Domain Model to Create Todo
-            dbContext.Todos.Add(todoDomainModel);
-            dbContext.SaveChanges();
+            await dbContext.Todos.AddAsync(todoDomainModel);
+            await dbContext.SaveChangesAsync();
 
             // Map Domain to DTO
             var todoDto = new TodoDto
@@ -103,10 +104,10 @@ namespace TODOList.API.Controllers
         // PUT: https://localhost:7082/api/todos/{id}
         [HttpPut]
         [Route("id:Guid")]
-        public IActionResult Update([FromRoute] Guid id, [FromBody] UpdateTodoRequestDto updateTodoRequestDto )
+        public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateTodoRequestDto updateTodoRequestDto )
         {
             // Check if todo exists
-            var todoDomainModel = dbContext.Todos.FirstOrDefault(todo => todo.Id == id);
+            var todoDomainModel = await dbContext.Todos.FirstOrDefaultAsync(todo => todo.Id == id);
 
             if ( todoDomainModel == null )
             {
@@ -119,7 +120,7 @@ namespace TODOList.API.Controllers
             todoDomainModel.CategoryId = updateTodoRequestDto.CategoryId;
             todoDomainModel.CategoryName = updateTodoRequestDto.CategoryName;
 
-            dbContext.SaveChanges();
+            await dbContext.SaveChangesAsync();
 
             // Domain Model To Dto
             var todoDto = new TodoDto
@@ -139,9 +140,9 @@ namespace TODOList.API.Controllers
         // DELETE: https://localhost:7082/api/todos/{id}
         [HttpDelete]
         [Route("id:Guid")]
-        public IActionResult Delete([FromRoute] Guid id) 
+        public async Task<IActionResult> Delete([FromRoute] Guid id) 
         {
-            var todoDomainModel = dbContext.Todos.FirstOrDefault(todo => todo.Id == id);
+            var todoDomainModel = await dbContext.Todos.FirstOrDefaultAsync(todo => todo.Id == id);
             
             if ( todoDomainModel == null )
             {
@@ -150,7 +151,7 @@ namespace TODOList.API.Controllers
 
             // Delete Todo
             dbContext.Todos.Remove(todoDomainModel);
-            dbContext.SaveChanges();
+            await dbContext.SaveChangesAsync();
 
             // Return Deleted Todo
             // Map Domain Model to DTO
