@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using TODOList.API.Data;
 using TODOList.API.Models.Domain;
 using TODOList.API.Models.DTO;
+using TODOList.API.Repositories;
 
 namespace TODOList.API.Controllers
 {
@@ -13,10 +14,12 @@ namespace TODOList.API.Controllers
     public class TodosController : ControllerBase
     {
         private readonly TodoListDbContext dbContext;
+        private readonly ITodoRepository todoRepository;
 
-        public TodosController(TodoListDbContext dbContext)
+        public TodosController(TodoListDbContext dbContext, ITodoRepository todoRepository)
         {
             this.dbContext = dbContext;
+            this.todoRepository = todoRepository;
         }
 
         // GET ALL TODOS
@@ -25,7 +28,7 @@ namespace TODOList.API.Controllers
         public async Task<IActionResult> GetAll()
         {   
             // Get Data From Database - Domain Models
-            var todosDomain = await dbContext.Todos.ToListAsync();
+            var todosDomain = await todoRepository.GetAllAsync();
 
             //Map Domain Model to Dto
             var todosDto = new List<TodoDto>();
@@ -51,7 +54,7 @@ namespace TODOList.API.Controllers
         public async Task<IActionResult> GetById([FromRoute] Guid id)
         {
             // Get Data From Database - Domain Models
-            var todoDomain = await dbContext.Todos.FirstOrDefaultAsync( todo => todo.Id == id);
+            var todoDomain = await todoRepository.GetByIdAsync(id);
 
             if (todoDomain is null)
             {
@@ -85,8 +88,7 @@ namespace TODOList.API.Controllers
             };
 
             // Use Domain Model to Create Todo
-            await dbContext.Todos.AddAsync(todoDomainModel);
-            await dbContext.SaveChangesAsync();
+            todoDomainModel = await todoRepository.CreateAsync(todoDomainModel);
 
             // Map Domain to DTO
             var todoDto = new TodoDto
@@ -106,23 +108,24 @@ namespace TODOList.API.Controllers
         [Route("id:Guid")]
         public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateTodoRequestDto updateTodoRequestDto )
         {
-            // Check if todo exists
-            var todoDomainModel = await dbContext.Todos.FirstOrDefaultAsync(todo => todo.Id == id);
+            // Map DTO To Domain Model
+            var todoDomainModel = new Todo
+            {
+                Name = updateTodoRequestDto.Name,
+                Description = updateTodoRequestDto.Description,
+                CategoryId = updateTodoRequestDto.CategoryId,
+                CategoryName = updateTodoRequestDto.CategoryName,
+            };
+
+            // Updates Todo or Returns null
+            todoDomainModel = await todoRepository.UpdateAsync(id, todoDomainModel);
 
             if ( todoDomainModel == null )
             {
                 return NotFound();
             }
-            
-            // Map DTO To Domain Model
-            todoDomainModel.Name = updateTodoRequestDto.Name;
-            todoDomainModel.Description = updateTodoRequestDto.Description;
-            todoDomainModel.CategoryId = updateTodoRequestDto.CategoryId;
-            todoDomainModel.CategoryName = updateTodoRequestDto.CategoryName;
 
-            await dbContext.SaveChangesAsync();
-
-            // Domain Model To Dto
+            // Domain Model to DTO
             var todoDto = new TodoDto
             {
                 Name = todoDomainModel.Name,
@@ -132,8 +135,6 @@ namespace TODOList.API.Controllers
             };
 
             return Ok(todoDto);
-
-
         }
 
         // DELETE To Delete TODO
@@ -142,18 +143,14 @@ namespace TODOList.API.Controllers
         [Route("id:Guid")]
         public async Task<IActionResult> Delete([FromRoute] Guid id) 
         {
-            var todoDomainModel = await dbContext.Todos.FirstOrDefaultAsync(todo => todo.Id == id);
+            // Deletes TODO or Returns null
+            var todoDomainModel = await todoRepository.DeleteAsync(id);
             
             if ( todoDomainModel == null )
             {
                 return NotFound();
             }
 
-            // Delete Todo
-            dbContext.Todos.Remove(todoDomainModel);
-            await dbContext.SaveChangesAsync();
-
-            // Return Deleted Todo
             // Map Domain Model to DTO
             var todoDto = new TodoDto
             {
@@ -163,7 +160,7 @@ namespace TODOList.API.Controllers
                 CategoryName = todoDomainModel.CategoryName,
             };
 
-            return Ok();
+            return Ok(todoDto);
         }
 
     }
