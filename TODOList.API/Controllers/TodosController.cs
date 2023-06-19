@@ -4,6 +4,7 @@ using TODOList.API.Data;
 using TODOList.API.Models.Domain;
 using TODOList.API.Models.DTO;
 using TODOList.API.Repositories;
+using TODOList.API.CustomActionFilters;
 
 namespace TODOList.API.Controllers
 {
@@ -56,6 +57,7 @@ namespace TODOList.API.Controllers
         // POST To Create New TODO
         // POST: https://localhost:7082/api/todos/
         [HttpPost]
+        [ValidateModel]
         public async Task<IActionResult> Create([FromBody] AddTodoRequestDto addTodoRequestDto)
         {
             // Mapo DTO to Domain Model
@@ -75,6 +77,7 @@ namespace TODOList.API.Controllers
         // PUT: https://localhost:7082/api/todos/{id}
         [HttpPut]
         [Route("id:Guid")]
+        [ValidateModel]
         public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateTodoRequestDto updateTodoRequestDto )
         {
             // Map DTO To Domain Model
@@ -83,7 +86,7 @@ namespace TODOList.API.Controllers
             // Updates Todo or Returns null
             todoDomainModel = await todoRepository.UpdateAsync(id, todoDomainModel);
 
-            if ( todoDomainModel == null )
+            if (todoDomainModel == null)
             {
                 return NotFound();
             }
@@ -108,6 +111,5 @@ namespace TODOList.API.Controllers
 
             return Ok(mapper.Map<TodoDto>(todoDomainModel));
         }
-
     }
 }
