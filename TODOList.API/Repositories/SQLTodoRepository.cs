@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TODOList.API.Data;
 using TODOList.API.Models.Domain;
-using TODOList.API.Models.DTO;
 
 namespace TODOList.API.Repositories
 {
