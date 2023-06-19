@@ -25,12 +25,15 @@ namespace TODOList.API.Controllers
         }
 
         // GET ALL TODOS
-        // Get: https://localhost:7082/api/todos
+        // Get: https://localhost:7082/api/todos?filterOn=Name&Query=Patusco&sortBy=Name&IsAscending=true&pageNumber=1&pageSize=10
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] string? filterOn, [FromQuery] string? filterQuery,
+            [FromQuery] string? sortby, [FromQuery] bool? isAscending,
+            [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 1000)
         {   
             // Get Data From Database - Domain Models
-            var todosDomain = await todoRepository.GetAllAsync();
+            var todosDomain = await todoRepository.GetAllAsync(filterOn, filterQuery, sortby, isAscending ?? true,
+                pageNumber, pageSize);
 
             // Return DTO
             return Ok(mapper.Map<List<TodoDto>>(todosDomain));
