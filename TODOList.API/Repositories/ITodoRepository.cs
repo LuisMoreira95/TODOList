@@ -2,6 +2,7 @@
 
 namespace TODOList.API.Repositories
 {
+    // Repositories Always Deal With Domain Models
     public interface ITodoRepository
     {
         Task<List<Todo>> GetAllAsync();

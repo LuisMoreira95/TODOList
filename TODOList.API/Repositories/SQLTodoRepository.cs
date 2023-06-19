@@ -15,12 +15,14 @@ namespace TODOList.API.Repositories
 
         public async Task<List<Todo>> GetAllAsync()
         {
-            return await dbContext.Todos.ToListAsync();
+            return await dbContext.Todos.Include("Category").ToListAsync();
         }
 
         public async Task<Todo?> GetByIdAsync(Guid id)
         {
-            return await dbContext.Todos.FirstOrDefaultAsync(todo => todo.Id == id);
+            return await dbContext.Todos
+                .Include("Category")
+                .FirstOrDefaultAsync(todo => todo.Id == id);
         }
         
         public async Task<Todo> CreateAsync(Todo todo)
@@ -33,6 +35,7 @@ namespace TODOList.API.Repositories
         public async Task<Todo?> UpdateAsync(Guid id, Todo todo)
         {
             var existingTodo = await dbContext.Todos.FirstOrDefaultAsync(todo => todo.Id == id);
+            
             if (existingTodo == null) 
             {
                 return null;
@@ -41,12 +44,10 @@ namespace TODOList.API.Repositories
             existingTodo.Name = todo.Name;
             existingTodo.Description = todo.Description;
             existingTodo.CategoryId = todo.CategoryId;
-            existingTodo.CategoryName = todo.CategoryName;
 
             await dbContext.SaveChangesAsync();
             
             return existingTodo;
-
         }
 
         public async Task<Todo?> DeleteAsync(Guid id)
