@@ -11,6 +11,7 @@ namespace TODOList.API.Mappings
             CreateMap<Todo, TodoDto>().ReverseMap();
             CreateMap<AddTodoRequestDto, Todo>().ReverseMap();
             CreateMap<UpdateTodoRequestDto, Todo>().ReverseMap();
+            CreateMap<Category, CategoryDto>().ReverseMap();
         }
     }
 }

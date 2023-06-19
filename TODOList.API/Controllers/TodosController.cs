@@ -58,7 +58,7 @@ namespace TODOList.API.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] AddTodoRequestDto addTodoRequestDto)
         {
-            // Mapo Dto to Domain Model
+            // Mapo DTO to Domain Model
             var todoDomainModel = mapper.Map<Todo>(addTodoRequestDto);
 
             // Use Domain Model to Create Todo
@@ -67,6 +67,7 @@ namespace TODOList.API.Controllers
             // Map Domain to DTO
             var todoDto = mapper.Map<TodoDto>(todoDomainModel);
 
+            // TODO: Understand this line better
             return CreatedAtAction(nameof(GetById), new { id = todoDto.Id }, todoDto);
         }
 
@@ -91,7 +92,7 @@ namespace TODOList.API.Controllers
             return Ok(mapper.Map<TodoDto>(todoDomainModel));
         }
 
-        // DELETE To Delete TODO
+        // DELETE TODO
         // DELETE: https://localhost:7082/api/todos/{id}
         [HttpDelete]
         [Route("id:Guid")]
