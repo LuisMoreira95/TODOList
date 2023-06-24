@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using TODOList.API.Controllers;
 using TODOList.API.Data;
 using TODOList.API.Models.Domain;
 
