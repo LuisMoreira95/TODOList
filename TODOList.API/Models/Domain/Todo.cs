@@ -7,6 +7,7 @@ namespace TODOList.API.Models.Domain
         public Guid Id { get; set; }
         public string Name { get; set; }
         public string? Description { get; set; }
+        public bool Done { get; set; }
         public Guid CategoryId { get; set; }
         
         // Navigation properties - Definem as relações do Domain

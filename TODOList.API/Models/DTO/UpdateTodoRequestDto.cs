@@ -11,6 +11,8 @@ namespace TODOList.API.Models.DTO
         [MaxLength(200, ErrorMessage = "Description can not have more that 200 characters")]
         public string? Description { get; set; }
         [Required]
+        public bool Done { get; set; }
+        [Required]
         public Guid CategoryId { get; set; }
     }
 }

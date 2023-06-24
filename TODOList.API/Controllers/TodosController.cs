@@ -13,13 +13,11 @@ namespace TODOList.API.Controllers
     [ApiController]
     public class TodosController : ControllerBase
     {
-        private readonly TodoListDbContext dbContext;
         private readonly ITodoRepository todoRepository;
         private readonly IMapper mapper;
 
-        public TodosController(TodoListDbContext dbContext, ITodoRepository todoRepository, IMapper mapper)
+        public TodosController(ITodoRepository todoRepository, IMapper mapper)
         {
-            this.dbContext = dbContext;
             this.todoRepository = todoRepository;
             this.mapper = mapper;
         }
@@ -42,13 +40,13 @@ namespace TODOList.API.Controllers
         // GET SPECIFIC TODO (Get Todo By ID)
         // Get: https://localhost:7082/api/todos/{id}
         [HttpGet]
-        [Route("id:Guid")]
+        [Route("{id:Guid}")]
         public async Task<IActionResult> GetById([FromRoute] Guid id)
         {
             // Get Data From Database - Domain Models
             var todoDomain = await todoRepository.GetByIdAsync(id);
 
-            if (todoDomain is null)
+            if (todoDomain == null)
             {
                 return NotFound();
             }
@@ -67,19 +65,18 @@ namespace TODOList.API.Controllers
             var todoDomainModel = mapper.Map<Todo>(addTodoRequestDto);
 
             // Use Domain Model to Create Todo
-            todoDomainModel = await todoRepository.CreateAsync(todoDomainModel);
+            await todoRepository.CreateAsync(todoDomainModel);
 
-            // Map Domain to DTO
             var todoDto = mapper.Map<TodoDto>(todoDomainModel);
 
-            // TODO: Understand this line better
-            return CreatedAtAction(nameof(GetById), new { id = todoDto.Id }, todoDto);
+            // Return DTO
+            return Ok(todoDto);
         }
 
         // PUT To Update TODO
         // PUT: https://localhost:7082/api/todos/{id}
         [HttpPut]
-        [Route("id:Guid")]
+        [Route("{id:Guid}")]
         [ValidateModel]
         public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateTodoRequestDto updateTodoRequestDto )
         {
@@ -101,7 +98,7 @@ namespace TODOList.API.Controllers
         // DELETE TODO
         // DELETE: https://localhost:7082/api/todos/{id}
         [HttpDelete]
-        [Route("id:Guid")]
+        [Route("{id:Guid}")]
         public async Task<IActionResult> Delete([FromRoute] Guid id) 
         {
             // Deletes TODO or Returns null
