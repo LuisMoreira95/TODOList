@@ -10,7 +10,7 @@ namespace TODOList.API.Data
             
         }
 
-        // Propriedades que criam as tabelas em SQL
+        // Propriteies that create SQL Tables
         public DbSet<Todo> Todos { get; set; }
 
         public DbSet<Category> Categories { get; set; }
