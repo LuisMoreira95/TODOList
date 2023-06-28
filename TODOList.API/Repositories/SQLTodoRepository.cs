@@ -27,7 +27,6 @@ namespace TODOList.API.Repositories
                 {
                     todos = todos.Where(todo => todo.Name.Contains(filterQuery));
                 }
-                // LM: Feature - Test Thoroughly check if is Category or category
                 //Filter On Category Name
                 else if (filterOn.Equals("Category", StringComparison.OrdinalIgnoreCase))
                 {
@@ -43,7 +42,6 @@ namespace TODOList.API.Repositories
                 {
                     todos = isAscending ? todos.OrderBy(todo => todo.Name) : todos.OrderByDescending(todo => todo.Name);
                 }
-                // LM: Feature - Test Thoroughly check if is Category or category
                 //Sort On Category Name
                 else if (sortBy.Equals("Category", StringComparison.OrdinalIgnoreCase)) 
                 {
