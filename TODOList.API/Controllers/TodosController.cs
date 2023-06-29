@@ -84,15 +84,15 @@ namespace TODOList.API.Controllers
             var todoDomainModel = mapper.Map<Todo>(updateTodoRequestDto);
 
             // Updates Todo or Returns null
-            todoDomainModel = await todoRepository.UpdateAsync(id, todoDomainModel);
+            var updatedDomainModel = await todoRepository.UpdateAsync(id, todoDomainModel);
 
-            if (todoDomainModel == null)
+            if (updatedDomainModel == null)
             {
                 return NotFound();
             }
 
             // Return DTO
-            return Ok(mapper.Map<TodoDto>(todoDomainModel));
+            return Ok(mapper.Map<TodoDto>(updatedDomainModel));
         }
 
         // DELETE TODO

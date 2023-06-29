@@ -81,7 +81,9 @@ namespace TODOList.API.Repositories
 
             existingTodo.Name = todo.Name;
             existingTodo.Description = todo.Description;
+            existingTodo.Done = todo.Done;
             existingTodo.CategoryId = todo.CategoryId;
+
 
             await dbContext.SaveChangesAsync();
             
