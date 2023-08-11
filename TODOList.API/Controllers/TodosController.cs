@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using TODOList.API.Data;
 using TODOList.API.Models.Domain;
 using TODOList.API.Models.DTO;
 using TODOList.API.Repositories;
@@ -28,7 +27,7 @@ namespace TODOList.API.Controllers
         public async Task<IActionResult> GetAll([FromQuery] string? filterOn, [FromQuery] string? filterQuery,
             [FromQuery] string? sortby, [FromQuery] bool? isAscending,
             [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 1000)
-        {   
+        {
             // Get Data From Database - Domain Models
             var todosDomain = await todoRepository.GetAllAsync(filterOn, filterQuery, sortby, isAscending ?? true,
                 pageNumber, pageSize);
@@ -50,7 +49,7 @@ namespace TODOList.API.Controllers
             {
                 return NotFound();
             }
-            
+
             // Return DTO
             return Ok(mapper.Map<TodoDto>(todoDomain));
         }
@@ -65,7 +64,7 @@ namespace TODOList.API.Controllers
             var todoDomainModel = mapper.Map<Todo>(addTodoRequestDto);
 
             // Use Domain Model to Create Todo
-            await todoRepository.CreateAsync(todoDomainModel);
+            await todoRepository.CreateAsync(todoDomainModel, addTodoRequestDto.CategoryIds);
 
             var todoDto = mapper.Map<TodoDto>(todoDomainModel);
 
@@ -78,13 +77,13 @@ namespace TODOList.API.Controllers
         [HttpPut]
         [Route("{id:Guid}")]
         [ValidateModel]
-        public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateTodoRequestDto updateTodoRequestDto )
+        public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateTodoRequestDto updateTodoRequestDto)
         {
             // Map DTO To Domain Model
             var todoDomainModel = mapper.Map<Todo>(updateTodoRequestDto);
 
             // Updates Todo or Returns null
-            var updatedDomainModel = await todoRepository.UpdateAsync(id, todoDomainModel);
+            var updatedDomainModel = await todoRepository.UpdateAsync(id, todoDomainModel, updateTodoRequestDto.CategoryIds);
 
             if (updatedDomainModel == null)
             {
@@ -99,12 +98,12 @@ namespace TODOList.API.Controllers
         // DELETE: https://localhost:7082/api/todos/{id}
         [HttpDelete]
         [Route("{id:Guid}")]
-        public async Task<IActionResult> Delete([FromRoute] Guid id) 
+        public async Task<IActionResult> Delete([FromRoute] Guid id)
         {
             // Deletes TODO or Returns null
             var todoDomainModel = await todoRepository.DeleteAsync(id);
-            
-            if ( todoDomainModel == null )
+
+            if (todoDomainModel == null)
             {
                 return NotFound();
             }

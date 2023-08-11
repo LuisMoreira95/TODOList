@@ -17,7 +17,7 @@ namespace TODOList.API.Repositories
             string? sortBy = null, bool isAscending = true,
             int pageNumber = 1, int pageSize = 1000)
         {
-            var todos = dbContext.Todos.Include("Category").AsQueryable();
+            var todos = dbContext.Todos.Include(todo => todo.Category_Todos).ThenInclude(todo => todo.Category).AsQueryable();
 
             // Filtering
             if (string.IsNullOrWhiteSpace(filterOn) == false && string.IsNullOrWhiteSpace(filterQuery) == false)
@@ -27,10 +27,10 @@ namespace TODOList.API.Repositories
                 {
                     todos = todos.Where(todo => todo.Name.Contains(filterQuery));
                 }
-                //Filter On Category Name
+                // Filter On Category Name
                 else if (filterOn.Equals("Category", StringComparison.OrdinalIgnoreCase))
                 {
-                    todos = todos.Where(todo => todo.Category.Name.Contains(filterQuery));
+                    todos = todos.Where(todo => todo.Category_Todos.Any(ct => ct.Category.Name.Contains(filterQuery)));
                 }
             }
 
@@ -42,39 +42,61 @@ namespace TODOList.API.Repositories
                 {
                     todos = isAscending ? todos.OrderBy(todo => todo.Name) : todos.OrderByDescending(todo => todo.Name);
                 }
-                //Sort On Category Name
-                else if (sortBy.Equals("Category", StringComparison.OrdinalIgnoreCase)) 
-                {
-                    todos = isAscending ? todos.OrderBy(todo => todo.Category.Name) : todos.OrderByDescending(todo => todo.Category.Name);
-                }
             }
 
-            // Pagination
+            //Pagination
             var skipResults = (pageNumber - 1) * pageSize;
 
             // Skip -> Results to skip - Take -> Number of results to retrieve 
-            return await todos.Skip(skipResults).Take(pageSize).ToListAsync(); 
+            return await todos.Skip(skipResults).Take(pageSize).ToListAsync();
         }
 
         public async Task<Todo?> GetByIdAsync(Guid id)
         {
             return await dbContext.Todos
-                .Include("Category")
+                .Include(todo => todo.Category_Todos).ThenInclude(todo => todo.Category)
                 .FirstOrDefaultAsync(todo => todo.Id == id);
         }
-        
-        public async Task<Todo> CreateAsync(Todo todo)
+
+        public async Task<Todo> CreateAsync(Todo todo, List<Guid> categoryIds)
         {
+            // Add Todo
             await dbContext.Todos.AddAsync(todo);
+
+            var todoId = todo.Id;
+
+            // Create relation between Todo and Cat
+            // Add entries to relational table
+            // One for each category
+            var Category_TodoList = new List<Category_Todo>();
+
+            foreach (Guid categoryId in categoryIds)
+            {
+                Category_TodoList.Add(new Category_Todo()
+                {
+                    TodoId = todoId,
+                    CategoryId = categoryId
+                });
+            }
+
+            await dbContext.Category_Todos.AddRangeAsync(Category_TodoList);
+
             await dbContext.SaveChangesAsync();
-            return todo;
+
+            // Return Created TODO
+            // Added this logic to return Todo with Categories associated
+            var createdTodo = await dbContext.Todos
+                .Include(todo => todo.Category_Todos).ThenInclude(todo => todo.Category)
+                .FirstOrDefaultAsync(todo => todo.Id == todoId);
+
+            return createdTodo != null ? createdTodo : todo;
         }
-        
-        public async Task<Todo?> UpdateAsync(Guid id, Todo todo)
+
+        public async Task<Todo?> UpdateAsync(Guid id, Todo todo, List<Guid> categoryIds)
         {
             var existingTodo = await dbContext.Todos.FirstOrDefaultAsync(todo => todo.Id == id);
-            
-            if (existingTodo == null) 
+
+            if (existingTodo == null)
             {
                 return null;
             }
@@ -82,19 +104,46 @@ namespace TODOList.API.Repositories
             existingTodo.Name = todo.Name;
             existingTodo.Description = todo.Description;
             existingTodo.Done = todo.Done;
-            existingTodo.CategoryId = todo.CategoryId;
 
+            // Updating Categories on TODOS
 
+            // Remove entries with this todoId from Category_Todos
+            var categoriesToDelete = await dbContext.Category_Todos.Where(ct => ct.TodoId == id).ToListAsync();
+            dbContext.Category_Todos.RemoveRange(categoriesToDelete);
             await dbContext.SaveChangesAsync();
-            
-            return existingTodo;
+
+            // Add new entries with the new categories
+            var Category_TodoList = new List<Category_Todo>();
+
+            foreach (Guid categoryId in categoryIds)
+            {
+                Category_TodoList.Add(new Category_Todo()
+                {
+                    TodoId = id,
+                    CategoryId = categoryId
+                });
+            }
+
+            await dbContext.Category_Todos.AddRangeAsync(Category_TodoList);
+            await dbContext.SaveChangesAsync();
+
+            // Return Updated TODO
+            // Added this logic to return Todo with Categories associated
+
+            var updatedTodo = await dbContext.Todos
+                .Include(todo => todo.Category_Todos).ThenInclude(todo => todo.Category)
+                .FirstOrDefaultAsync(todo => todo.Id == id);
+
+            return updatedTodo != null ? updatedTodo : existingTodo;
         }
 
         public async Task<Todo?> DeleteAsync(Guid id)
         {
-            var existingTodo = await dbContext.Todos.FirstOrDefaultAsync(todo => todo.Id == id);
+            var existingTodo = await dbContext.Todos
+                .Include(todo => todo.Category_Todos).ThenInclude(todo => todo.Category)
+                .FirstOrDefaultAsync(todo => todo.Id == id);
 
-            if(existingTodo == null)
+            if (existingTodo == null)
             {
                 return null;
             }

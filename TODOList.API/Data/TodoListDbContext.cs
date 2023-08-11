@@ -7,13 +7,13 @@ namespace TODOList.API.Data
     {
         public TodoListDbContext(DbContextOptions dbContextOptions) : base(dbContextOptions)
         {
-            
+
         }
 
         // Propriteies that create SQL Tables
         public DbSet<Todo> Todos { get; set; }
-
         public DbSet<Category> Categories { get; set; }
+        public DbSet<Category_Todo> Category_Todos { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -52,7 +52,17 @@ namespace TODOList.API.Data
 
             // Seed Categories to the Database
             modelBuilder.Entity<Category>().HasData(categories);
-        }
 
+            // Set relations between domains
+            modelBuilder.Entity<Category_Todo>()
+                .HasOne(c => c.Category)
+                .WithMany(ct => ct.Category_Todos)
+                .HasForeignKey(ci => ci.CategoryId);
+
+            modelBuilder.Entity<Category_Todo>()
+                .HasOne(c => c.Todo)
+                .WithMany(ct => ct.Category_Todos)
+                .HasForeignKey(ci => ci.TodoId);
+        }
     }
 }

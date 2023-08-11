@@ -8,10 +8,9 @@ namespace TODOList.API.Models.Domain
         public string Name { get; set; }
         public string? Description { get; set; }
         public bool Done { get; set; }
-        public Guid CategoryId { get; set; }
-        
+
         // Navigation properties - Define relations on domain
         // When Entity Framework Migrations is executed
-        public Category Category { get; set; }
+        public List<Category_Todo> Category_Todos { get; set; }
     }
 }
