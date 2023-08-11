@@ -9,8 +9,8 @@ namespace TODOList.API.Repositories
             string? sortBy = null, bool isAscending = true,
             int pageNumber = 1, int pageSize = 1000);
         Task<Todo?> GetByIdAsync(Guid id);
-        Task<Todo> CreateAsync(Todo todo);
-        Task<Todo?> UpdateAsync(Guid id, Todo todo);
+        Task<Todo> CreateAsync(Todo todo, List<Guid> categoryIds);
+        Task<Todo?> UpdateAsync(Guid id, Todo todo, List<Guid> categoryIds);
         Task<Todo?> DeleteAsync(Guid id);
 
     }

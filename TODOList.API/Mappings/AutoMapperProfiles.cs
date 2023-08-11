@@ -8,7 +8,9 @@ namespace TODOList.API.Mappings
     {
         public AutoMapperProfiles()
         {
-            CreateMap<Todo, TodoDto>().ReverseMap();
+            var toTodoDTO = CreateMap<Todo, TodoDto>()
+                 .ForMember(dto => dto.Categories, todo => todo.MapFrom(t => t.Category_Todos.Select(ct => ct.Category)))
+                 .ReverseMap();
             CreateMap<AddTodoRequestDto, Todo>().ReverseMap();
             CreateMap<UpdateTodoRequestDto, Todo>().ReverseMap();
             CreateMap<Category, CategoryDto>().ReverseMap();

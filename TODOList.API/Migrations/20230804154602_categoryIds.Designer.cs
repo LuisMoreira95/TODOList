@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TODOList.API.Data;
 
@@ -11,9 +12,11 @@ using TODOList.API.Data;
 namespace TODOList.API.Migrations
 {
     [DbContext(typeof(TodoListDbContext))]
-    partial class TodoListDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230804154602_categoryIds")]
+    partial class categoryIds
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -32,7 +35,12 @@ namespace TODOList.API.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<Guid?>("TodoId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("TodoId");
 
                     b.ToTable("Categories");
 
@@ -64,13 +72,31 @@ namespace TODOList.API.Migrations
                         });
                 });
 
-            modelBuilder.Entity("TODOList.API.Models.Domain.Todo", b =>
+            modelBuilder.Entity("TODOList.API.Models.Domain.Category_Todo", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("CategoryId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("TodoId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
+
+                    b.HasIndex("TodoId");
+
+                    b.ToTable("Category_Todos");
+                });
+
+            modelBuilder.Entity("TODOList.API.Models.Domain.Todo", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Description")
@@ -85,20 +111,45 @@ namespace TODOList.API.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CategoryId");
-
                     b.ToTable("Todos");
                 });
 
-            modelBuilder.Entity("TODOList.API.Models.Domain.Todo", b =>
+            modelBuilder.Entity("TODOList.API.Models.Domain.Category", b =>
+                {
+                    b.HasOne("TODOList.API.Models.Domain.Todo", null)
+                        .WithMany("CategoryIds")
+                        .HasForeignKey("TodoId");
+                });
+
+            modelBuilder.Entity("TODOList.API.Models.Domain.Category_Todo", b =>
                 {
                     b.HasOne("TODOList.API.Models.Domain.Category", "Category")
-                        .WithMany()
+                        .WithMany("Category_Todos")
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("TODOList.API.Models.Domain.Todo", "Todo")
+                        .WithMany("Category_Todos")
+                        .HasForeignKey("TodoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Category");
+
+                    b.Navigation("Todo");
+                });
+
+            modelBuilder.Entity("TODOList.API.Models.Domain.Category", b =>
+                {
+                    b.Navigation("Category_Todos");
+                });
+
+            modelBuilder.Entity("TODOList.API.Models.Domain.Todo", b =>
+                {
+                    b.Navigation("CategoryIds");
+
+                    b.Navigation("Category_Todos");
                 });
 #pragma warning restore 612, 618
         }

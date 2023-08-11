@@ -13,6 +13,6 @@ namespace TODOList.API.Models.DTO
         [Required]
         public bool Done { get; set; }
         [Required]
-        public Guid CategoryId { get; set; }
+        public List<Guid> CategoryIds { get; set; }
     }
 }
